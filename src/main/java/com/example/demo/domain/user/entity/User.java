@@ -28,4 +28,9 @@ public class User extends TimeStamped {
 
 	private String nickname;
 
+	public User(Long id, String nickname)
+	{
+		this.id = id;
+		this.nickname = nickname;
+	}
 }
