@@ -1,4 +1,6 @@
 package com.example.demo.global.config;
+import com.example.demo.domain.user.repository.UserRepository;
+import com.example.demo.global.security.JwtAuthenticationFilter;
 import com.example.demo.global.security.JwtAuthorizationFilter;
 import com.example.demo.global.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +26,9 @@ public class WebSecurityConfig {
 
 	private final JwtUtil jwtUtil;
 	private final ObjectMapper objectMapper;
+	private final AuthenticationConfiguration authenticationConfiguration;
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -39,6 +44,14 @@ public class WebSecurityConfig {
 	@Bean
 	public JwtAuthorizationFilter jwtAuthorizationFilter() {
 		return new JwtAuthorizationFilter(jwtUtil, objectMapper);
+	}
+
+	@Bean
+	public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
+		JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository,
+			passwordEncoder);
+		filter.setAuthenticationManager(authenticationManager(new AuthenticationConfiguration()));
+		return filter;
 	}
 
 	@Bean
@@ -64,6 +77,7 @@ public class WebSecurityConfig {
 
 		// 필터 관리
 		http.addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
