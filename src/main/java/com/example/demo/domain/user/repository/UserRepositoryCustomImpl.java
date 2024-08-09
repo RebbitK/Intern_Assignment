@@ -28,8 +28,24 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 		return Optional.ofNullable(query);
 	}
 
+	@Override
+	public Optional<User> findByNickname(String nickname) {
+		User query = jpaQueryFactory.select(QUser.user)
+			.from(QUser.user)
+			.where(
+				nicknameEq(nickname),
+				QUser.user.deletedAt.isNull()
+			)
+			.fetchOne();
+		return Optional.ofNullable(query);
+	}
+
 	private BooleanExpression usernameEq(String username) {
 		return Objects.nonNull(username) ? QUser.user.username.eq(username) : null;
+	}
+
+	private BooleanExpression nicknameEq(String nickname) {
+		return Objects.nonNull(nickname) ? QUser.user.nickname.eq(nickname) : null;
 	}
 
 }

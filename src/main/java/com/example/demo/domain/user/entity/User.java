@@ -1,5 +1,6 @@
 package com.example.demo.domain.user.entity;
 
+import com.example.demo.domain.user.dto.SignRequestDto;
 import com.example.demo.global.entity.TimeStamped;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,5 +43,12 @@ public class User extends TimeStamped {
 		this.id = id;
 		this.nickname = nickname;
 		this.role = RoleEnum.valueOf(authority);
+	}
+
+	public User(SignRequestDto requestDto,String password){
+		this.username = requestDto.getUsername();
+		this.password = password;
+		this.nickname = requestDto.getNickname();
+		this.role = RoleEnum.USER;
 	}
 }
