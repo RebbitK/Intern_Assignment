@@ -3,6 +3,8 @@ package com.example.demo.domain.user.entity;
 import com.example.demo.global.entity.TimeStamped;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,9 +34,13 @@ public class User extends TimeStamped {
 	@Column(nullable = false, unique = true)
 	private String nickname;
 
-	public User(Long id, String nickname)
+	@Enumerated(EnumType.STRING)
+	private RoleEnum role;
+
+	public User(Long id, String nickname,String authority)
 	{
 		this.id = id;
 		this.nickname = nickname;
+		this.role = RoleEnum.valueOf(authority);
 	}
 }

@@ -1,5 +1,6 @@
 package com.example.demo.global.entity;
 
+import com.example.demo.domain.user.entity.RoleEnum;
 import com.example.demo.domain.user.entity.User;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +29,8 @@ public class UserDetailsImpl implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		String authority = "user";
+		RoleEnum role = user.getRole();
+		String authority = role.getAuthority();
 
 		SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(authority);
 		Collection<GrantedAuthority> authorities = new ArrayList<>();

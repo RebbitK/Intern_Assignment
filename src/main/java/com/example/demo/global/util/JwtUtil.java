@@ -2,6 +2,7 @@ package com.example.demo.global.util;
 
 import com.example.demo.domain.refresh.entity.RefreshToken;
 import com.example.demo.domain.refresh.repository.RefreshTokenRepository;
+import com.example.demo.domain.user.entity.RoleEnum;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -60,8 +61,9 @@ public class JwtUtil {
 		String refreshToken = token.getRefreshToken().substring(7);
 		Claims info = Jwts.parserBuilder().setSigningKey(key).build()
 			.parseClaimsJws(refreshToken).getBody();
+		RoleEnum roleEnum = RoleEnum.valueOf(info.get("role",String.class));
 		return createAccessToken(info.get("userId", Long.class),
-			info.get("username", String.class),info.get("nickname", String.class));
+			info.get("username", String.class),info.get("nickname", String.class),roleEnum);
 	}
 
 	public void deleteRefreshToken(Long userId) {
@@ -73,10 +75,10 @@ public class JwtUtil {
 		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 	}
 
-	public String createToken(Long userId, String username,String nickname) {
+	public String createToken(Long userId, String username,String nickname,RoleEnum role) {
 		Date date = new Date();
 
-		String accessToken = createAccessToken(userId, username,nickname);
+		String accessToken = createAccessToken(userId, username,nickname,role);
 		deleteRefreshToken(userId);
 
 		String refreshToken = BEARER_PREFIX +
@@ -84,6 +86,7 @@ public class JwtUtil {
 				.claim("userId", userId)
 				.claim("username", username)
 				.claim("nickname",nickname)
+				.claim("role", role)
 				.setIssuedAt(new Date(date.getTime()))
 				.setExpiration(new Date(date.getTime() + REFRESHTOKENTIME))
 				.signWith(key, signatureAlgorithm)
@@ -94,7 +97,7 @@ public class JwtUtil {
 		return accessToken;
 	}
 
-	public String createAccessToken(Long userId, String username,String nickname) {
+	public String createAccessToken(Long userId, String username,String nickname,RoleEnum role) {
 		Date date = new Date();
 
 		long TOKEN_TIME = 60 * 60 * 10000;
@@ -103,6 +106,7 @@ public class JwtUtil {
 				.claim("userId", userId)
 				.claim("username", username)
 				.claim("nickname",nickname)
+				.claim("role", role)
 				.setExpiration(new Date(date.getTime() + TOKEN_TIME))
 				.setIssuedAt(date)
 				.signWith(key, signatureAlgorithm)

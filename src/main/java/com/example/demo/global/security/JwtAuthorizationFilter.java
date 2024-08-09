@@ -90,7 +90,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 	private Authentication createAuthentication(Claims info) {
 		Long userId = info.get("userId", Long.class);
 		String nickname = info.get("nickname", String.class);
-		User user = new User(userId, nickname);
+		String authority = info.get("role", String.class);
+		User user = new User(userId, nickname,authority);
 		UserDetails userDetails = new UserDetailsImpl(user);
 		return new CustomAuthentication(userDetails);
 	}

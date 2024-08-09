@@ -63,7 +63,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		HttpServletResponse response, FilterChain chain, Authentication authResult)
 		throws IOException {
 		User user = (User) authResult.getPrincipal();
-		String token = jwtUtil.createToken(user.getId(), user.getUsername(),user.getNickname());
+		String token = jwtUtil.createToken(user.getId(), user.getUsername(),user.getNickname(),user.getRole());
 		response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
 		ObjectNode json = new ObjectMapper().createObjectNode();
 		json.put("message", "상태코드:200 로그인성공                     ");
