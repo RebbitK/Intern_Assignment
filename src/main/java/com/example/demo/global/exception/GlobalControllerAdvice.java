@@ -3,6 +3,7 @@ package com.example.demo.global.exception;
 import com.example.demo.global.common.CommonResponse;
 import com.example.demo.global.exception.customException.DuplicateNicknameException;
 import com.example.demo.global.exception.customException.DuplicateUsernameException;
+import com.example.demo.global.exception.customException.InvalidCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,14 @@ public class GlobalControllerAdvice {
 		log.error(">>>" + ex.getClass().getName() + "<<< \n msg: {}, code: {}, url: {}",
 			ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI(), ex);
 		return createResponse(HttpStatus.CONFLICT, ex.getMessage());
+	}
+
+	@ExceptionHandler({InvalidCredentialsException.class})
+	public ResponseEntity<CommonResponse<ErrorResponse>> handleUnauthorizedException(Exception ex,
+		HttpServletRequest request) {
+		log.error(">>>" + ex.getClass().getName() + "<<< \n msg: {}, code: {}, url: {}",
+			ex.getMessage(), HttpStatus.UNAUTHORIZED, request.getRequestURI(), ex);
+		return createResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
 	}
 
 
