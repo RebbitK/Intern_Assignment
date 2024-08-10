@@ -29,7 +29,7 @@ public class UserController {
 		SignResponseDto responseDto = userService.signUp(requestDto);
 		return ResponseEntity.status(HttpStatus.OK.value())
 			.body(CommonResponse.<SignResponseDto>builder()
-				.msg("회원가입 성공")
+				.msg("signup success")
 				.data(responseDto)
 				.build());
 	}
@@ -43,7 +43,7 @@ public class UserController {
 		response.setHeader(JwtUtil.AUTHORIZATION_HEADER, responseDto.getToken());
 		return ResponseEntity.status(HttpStatus.OK.value())
 			.body(CommonResponse.<LoginResponseDto>builder()
-				.msg("로그인 성공")
+				.msg("login success")
 				.data(responseDto)
 				.build());
 	}
