@@ -7,7 +7,7 @@ on:
     
 env:
   PROJECT_NAME: intern-project
-  BUCKET_NAME: intern-cicd-bucket
+  BUCKET_NAME: intern-s33
   CODE_DEPLOY_APP_NAME: intern_cicd
   DEPLOYMENT_GROUP_NAME: intern_instance
 
