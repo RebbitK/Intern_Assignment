@@ -1,64 +1,81 @@
-name: intern CICD
+name: coinTalk chatRoom server CI/CD
+
 on:
   push:
-    branches: [ "main" , "dev" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main", "dev" ]
-    
-env:
-  PROJECT_NAME: intern-project
-  BUCKET_NAME: intern-s33
-  CODE_DEPLOY_APP_NAME: intern_cicd
-  DEPLOYMENT_GROUP_NAME: intern_instance
+    branches: [ main ]
 
-permissions:
-  contents: read
+env:
+  S3_BUCKET_NAME: intern-s33
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: 코드 체크아웃
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v2
+    
+    - name: JDK 17 설정
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - uses: actions/checkout@v3
+    - run: mkdir -p ./src/main/resources
+    - run: touch ./src/main/resources/application.properties
+    - run: echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.properties
+    - run: cat ./src/main/resources/application.properties
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build with Gradle
+      run: ./gradlew clean build
+      
+    # 디렉토리 생성
+    - name: Make Directory
+      run: mkdir -p deploy
+        
+    # Jar 파일 복사
+    - name: Copy Jar
+      run: cp ./build/libs/*.jar ./deploy
+      
+    # appspec.yml 파일 복사
+    - name: Copy appspec.yml
+      run: cp appspec.yml ./deploy
 
-      - name: JDK 17 설정
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - uses: actions/checkout@v3
-      - run: mkdir -p ./src/main/resources
-      - run: touch ./src/main/resources/application.properties
-      - run: echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.properties
-      - run: cat ./src/main/resources/application.properties
 
-      - name: gradlew 권한 부여
-        run: chmod +x ./gradlew
-        shell: bash
+    # script files 복사
+    - name: Copy script
+      run: cp ./scripts/*.sh ./deploy
 
-      - name: Gradle로 빌드
-        uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
-        with:
-          arguments: build -x test
+    - name: Make zip file
+      run: zip -r ./coinTalk.zip ./deploy
+      shell: bash
 
-      - name: ZIP 파일 생성
-        run: zip -qq -r ./$GITHUB_SHA.zip .
-        shell: bash
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_PRIVATE_ACCESS_KEY }}
-          aws-region: ap-northeast-2
+    - name: Upload to S3
+      run: aws s3 cp --region ap-northeast-2 ./coinTalk.zip s3://$S3_BUCKET_NAME/
 
-      - name: Upload to S3
-        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
 
-      - name: Code Deploy To EC2 instance
-        run: aws deploy create-deployment
-          --application-name $CODE_DEPLOY_APP_NAME
-          --deployment-config-name CodeDeployDefault.AllAtOnce
-          --deployment-group-name $DEPLOYMENT_GROUP_NAME
-          --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
+
+    # Deploy
+    - name: Deploy
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws deploy create-deployment \
+        --application-name intern-project \
+        --deployment-group-name intern_instance \
+        --file-exists-behavior OVERWRITE \
+        --s3-location intern-s33,bundleType=zip,key=coinTalk.zip \ 
+        --region ap-northeast-2
